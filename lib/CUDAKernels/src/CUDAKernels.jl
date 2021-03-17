@@ -65,7 +65,7 @@ failed(::CudaEvent) = false
 isdone(ev::CudaEvent) = CUDA.query(ev.event)
 
 function Event(::CUDADevice)
-    stream = CUDA.stream()
+    stream = CUDA.CuDefaultStream()
     event = CUDA.CuEvent(CUDA.EVENT_DISABLE_TIMING)
     CUDA.record(event, stream)
     CudaEvent(event)
@@ -86,10 +86,10 @@ function wait(::CPU, ev::CudaEvent, progress=yield)
 end
 
 # Use this to synchronize between computation using the task local stream
-wait(::CUDADevice, ev::CudaEvent, progress=nothing, stream=CUDA.stream()) = CUDA.wait(ev.event, stream)
+wait(::CUDADevice, ev::CudaEvent, progress=nothing, stream=CUDA.CuDefaultStream()) = CUDA.wait(ev.event, stream)
 wait(::CUDADevice, ev::NoneEvent, progress=nothing, stream=nothing) = nothing
 
-function wait(::CUDADevice, ev::MultiEvent, progress=nothing, stream=CUDA.stream())
+function wait(::CUDADevice, ev::MultiEvent, progress=nothing, stream=CUDA.CuDefaultStream())
     dependencies = collect(ev.events)
     cudadeps  = filter(d->d isa CudaEvent,    dependencies)
     otherdeps = filter(d->!(d isa CudaEvent), dependencies)
